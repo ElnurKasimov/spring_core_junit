@@ -46,12 +46,13 @@ public class TaskServiceImpl implements TaskService {
                 .map(Task::getName)
                 .noneMatch(name -> name.equals(task.getName())))
             throw new TaskNotFoundException("There is no such task: " + task);
+        // ---------------------------------------------------------
         Predicate<ToDo> ifToDoContainsMoreThanOneEqualTask =
                 toDo -> toDo.getTasks().stream().filter(t -> t.equals(task)).skip(1).findFirst().orElse(null) != null;
         ToDo containsMoreThanOneEqualTask =  toDoService.getAll().stream()
                 .filter( ifToDoContainsMoreThanOneEqualTask)
                 .findFirst().orElse(null);
-
+// --------------------------------------------------------------------
 
         Predicate<ToDo> ifToDoContainsTask =
                 toDo -> toDo.getTasks().stream().filter(t -> t.equals(task)).findFirst().orElse(null) != null;
@@ -70,6 +71,10 @@ public class TaskServiceImpl implements TaskService {
                 .noneMatch(name -> name.equals(task.getName())))
             throw new TaskNotFoundException("There is no such task: " + task);
         Predicate<ToDo> ifToDoContainsTask =  toDo -> toDo.getTasks().stream().filter(t -> t.equals(task)).findFirst().orElse(null) != null;
+
+        // to simplify predicate's code use method  getByToDo.  obtain list and list.contains(element)
+
+
         ToDo containsTask =  toDoService.getAll().stream()
                 .filter( ifToDoContainsTask)
                 .findFirst().orElse(null);
