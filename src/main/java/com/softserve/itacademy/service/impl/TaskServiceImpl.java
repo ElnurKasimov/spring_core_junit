@@ -1,6 +1,7 @@
 package com.softserve.itacademy.service.impl;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,32 +23,41 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public Task addTask(Task task, ToDo todo) {
-        // TODO
-        return null;
+        if (todo == null) throw new IllegalArgumentException("toDo must not be null");
+        if (task == null) throw new IllegalArgumentException("task must not be null");
+        List<Task> amendedList = todo.getTasks();
+        amendedList.add(task);
+        todo.setTasks(amendedList);
+        return task;
     }
 
     public Task updateTask(Task task) {
-        // TODO
+
         return null;
     }
 
     public void deleteTask(Task task) {
-        // TODO
+        // проверить задачу на нал.если нал - выбросить эксепшн
+        //если нет, то todoService.getAll().stream().
     }
 
     public List<Task> getAll() {
-        // TODO
-        return null;
+        return toDoService.getAll().stream()
+                .flatMap(toDo -> toDo.getTasks().stream())
+                .collect(Collectors.toList());
     }
 
     public List<Task> getByToDo(ToDo todo) {
-        // TODO
-        return null;
+        //проверить вход на нал
+        return todo.getTasks();
     }
 
     public Task getByToDoName(ToDo todo, String name) {
-        // TODO
-        return null;
+       if (todo == null) throw new IllegalArgumentException("toDo must not be null");
+       if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
+       return todo.getTasks().stream()
+               .filter(task -> task.getName().equals(name))
+               .findFirst().orElse(null);
     }
 
     public Task getByUserName(User user, String name) {
