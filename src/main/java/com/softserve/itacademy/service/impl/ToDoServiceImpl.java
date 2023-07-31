@@ -1,5 +1,6 @@
 package com.softserve.itacademy.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,10 +31,20 @@ public class ToDoServiceImpl implements ToDoService {
                 .filter(user1 -> user1.equals(user))
                 .findFirst()
                 .orElse(null);
-        if (searchedUser != null) {
-            todo.setOwner(searchedUser);
-            toDos.add(todo);
-        } else throw new ToDoNotFoundException("ToDo with owner " + user + " has not be found!");
+        List<ToDo> toDoList = getAll();
+        String title = todo.getTitle();
+        ToDo toDoInList = toDoList.stream()
+                .filter(toDoFromList -> toDoFromList.getTitle().equals(title)
+                && toDoFromList.getOwner().equals(user))
+                .findFirst()
+                .orElse(null);
+        if (toDoInList==null){
+            if (searchedUser != null) {
+                todo.setOwner(searchedUser);
+                todo.setCreatedAt(LocalDateTime.now());
+                toDos.add(todo);
+            } else throw new ToDoNotFoundException("ToDo with owner " + user + " has not be found!");
+        }else throw new ToDoNotFoundException("This ToDo is already exist!");
         return todo;
     }
 

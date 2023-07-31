@@ -1,5 +1,7 @@
 package com.softserve.itacademy;
 
+import com.softserve.itacademy.model.ToDo;
+import com.softserve.itacademy.service.impl.ToDoServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -9,6 +11,9 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import com.softserve.itacademy.model.User;
 import com.softserve.itacademy.service.UserService;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @RunWith(JUnitPlatform.class)
 public class ToDoServiceTest {
@@ -23,7 +28,7 @@ public class ToDoServiceTest {
 
     @Test
     public void checkAddToDo() {
-       // TODO, code
+
     }
 
     // TODO, other tests

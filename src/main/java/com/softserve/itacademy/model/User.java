@@ -14,6 +14,10 @@ public class User {
 
     private List<ToDo> myTodos;
 
+
+
+
+
     // Constructor(s), getters, setters, hashCode, equals, etc.
 
 }
