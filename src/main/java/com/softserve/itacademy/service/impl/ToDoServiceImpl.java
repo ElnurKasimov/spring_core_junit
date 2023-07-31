@@ -35,30 +35,36 @@ public class ToDoServiceImpl implements ToDoService {
         String title = todo.getTitle();
         ToDo toDoInList = toDoList.stream()
                 .filter(toDoFromList -> toDoFromList.getTitle().equals(title)
-                && toDoFromList.getOwner().equals(user))
+                        && toDoFromList.getOwner().equals(user))
                 .findFirst()
                 .orElse(null);
-        if (toDoInList==null){
+        if (toDoInList == null) {
             if (searchedUser != null) {
                 todo.setOwner(searchedUser);
                 todo.setCreatedAt(LocalDateTime.now());
                 toDos.add(todo);
-            } else throw new ToDoNotFoundException("ToDo with owner " + user + " has not be found!");
-        }else throw new ToDoNotFoundException("This ToDo is already exist!");
+            } else throw new ToDoNotFoundException("ToDo with owner " + user + " has not been found!");
+        } else throw new ToDoNotFoundException("This ToDo is already exist!");
         return todo;
     }
 
     public ToDo updateTodo(ToDo todo) {
-        String title = todo.getTitle();
-        User user = todo.getOwner();
-        ToDo toDoByUserTitle = getByUserTitle(user, title);
-        toDoByUserTitle.setTasks(todo.getTasks());
-        return toDoByUserTitle;
+        if (todo != null) {
+            String title = todo.getTitle();
+            User user = todo.getOwner();
+            ToDo toDoByUserTitle = getByUserTitle(user, title);
+            if (toDos.contains(toDoByUserTitle)) {
+                toDoByUserTitle.setTasks(todo.getTasks());
+                return toDoByUserTitle;
+            } else throw new ToDoNotFoundException("This ToDo has not been found!");
+        } else throw new ToDoNotFoundException("ToDo is null!");
     }
 
     public void deleteTodo(ToDo todo) {
         if (todo != null) {
-            toDos.remove(todo);
+            if (toDos.contains(todo)) {
+                toDos.remove(todo);
+            } else throw new ToDoNotFoundException("ToDo List doesn't contain this ToDo!");
         } else throw new ToDoNotFoundException("ToDo is null!");
     }
 
@@ -67,15 +73,21 @@ public class ToDoServiceImpl implements ToDoService {
     }
 
     public List<ToDo> getByUser(User user) {
-        return toDos.stream()
-                .filter(toDo -> toDo.getOwner().equals(user))
-                .collect(Collectors.toList());
+        if (user != null) {
+            List<ToDo> list = toDos.stream()
+                    .filter(toDo -> toDo.getOwner().equals(user))
+                    .collect(Collectors.toList());
+            if (list.size()==0){
+                throw new ToDoNotFoundException("ToDos with user " + user + " have not been found!");
+            }
+            else return list;
+        }
+        else throw new ToDoNotFoundException("User " + user + " is null!");
     }
 
     public ToDo getByUserTitle(User user, String title) {
         ToDo toDoByUserAndTitle = toDos.stream()
                 .filter(toDo -> toDo.getOwner().equals(user) && toDo.getTitle().equals(title))
-                .distinct()
                 .findFirst()
                 .orElse(null);
         if (toDoByUserAndTitle != null) {
