@@ -17,11 +17,13 @@ public class ToDo {
     public ToDo(String title, User owner) {
         this.title = title;
         this.owner = owner;
+        this.createdAt = LocalDateTime.now();
+
     }
 
-    public ToDo(String title, LocalDateTime createdAt, User owner, List<Task> tasks) {
+    public ToDo(String title, User owner, List<Task> tasks) {
         this.title = title;
-        this.createdAt = createdAt;
+        this.createdAt = LocalDateTime.now();
         this.owner = owner;
         this.tasks = tasks;
     }
