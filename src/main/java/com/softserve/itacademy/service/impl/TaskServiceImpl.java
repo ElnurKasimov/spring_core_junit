@@ -31,7 +31,7 @@ public class TaskServiceImpl implements TaskService {
         if (todo == null) throw new IllegalArgumentException("toDo must not be null");
         if (task == null) throw new IllegalArgumentException("task must not be null");
         if (toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
-            throw new ToDoNotFoundException("There is no such toDo: " + todo);
+            throw new ToDoValidationException("There is no such toDo: " + todo);
         List<Task> taskListToAdd = new ArrayList<>(todo.getTasks());
         if (taskListToAdd.contains(task)) throw new DublicateTaskException(
                 "ToDo " + todo + " contains task " + task + " already.  There should only be one task.");
@@ -87,7 +87,7 @@ public class TaskServiceImpl implements TaskService {
     public List<Task> getByToDo(ToDo todo) {
         if (todo == null) throw new IllegalArgumentException("toDo must not be null");
         if (toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
-            throw new ToDoNotFoundException("There is no such toDo: " + todo);
+            throw new ToDoValidationException("There is no such toDo: " + todo);
         return todo.getTasks();
     }
 
@@ -95,7 +95,7 @@ public class TaskServiceImpl implements TaskService {
         if (todo == null) throw new IllegalArgumentException("toDo must not be null");
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
         if (toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
-            throw new ToDoNotFoundException("There is no such toDo: " + todo);
+            throw new ToDoValidationException("There is no such toDo: " + todo);
         // pay attention to the test
         return todo.getTasks().stream()
                 .filter(task -> task.getName().equals(name))

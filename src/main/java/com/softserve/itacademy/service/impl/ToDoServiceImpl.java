@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.softserve.itacademy.exceptions.ToDoNotFoundException;
+import com.softserve.itacademy.exceptions.ToDoValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,14 +28,17 @@ public class ToDoServiceImpl implements ToDoService {
         List<User> users = userService.getAll();
 
         if (user == null) {
-            throw new ToDoNotFoundException("User can not be null!");
+            throw new ToDoValidationException("User can not be null!");
         }
 
         User searchedUser = users.stream()
-                .filter(user1 -> user1.equals(user))
+                .filter(userFromList -> userFromList.equals(user))
                 .findFirst()
                 .orElse(null);
 
+        if (searchedUser == null) {
+            throw new ToDoValidationException("User has not been found!");
+        }
         List<ToDo> toDoList = getAll();
 
         String title = todo.getTitle();
@@ -46,12 +49,9 @@ public class ToDoServiceImpl implements ToDoService {
                 .findFirst()
                 .orElse(null);
         if (toDoInList != null) {
-            throw new ToDoNotFoundException("This ToDo is already exist!");
+            throw new ToDoValidationException("This ToDo is already exist!");
         }
 
-        if (searchedUser == null) {
-            throw new ToDoNotFoundException("User has not been found!");
-        }
         todo.setOwner(searchedUser);
         toDos.add(todo);
 
@@ -60,18 +60,16 @@ public class ToDoServiceImpl implements ToDoService {
 
     public ToDo updateTodo(ToDo todo) {
         if (todo == null) {
-            throw new ToDoNotFoundException("ToDo is null!");
+            throw new ToDoValidationException("ToDo is null!");
         }
         String title = todo.getTitle();
         User user = todo.getOwner();
         ToDo toDoByUserTitle = getByUserTitle(user, title);
 
         if (!toDos.contains(toDoByUserTitle)) {
-            throw new ToDoNotFoundException("This ToDo has not been found!");
+            throw new ToDoValidationException("This ToDo has not been found!");
         }
-        if (todo.getTasks().equals(toDoByUserTitle.getTasks())){
-            throw new ToDoNotFoundException("This ToDo has the same Tasks!");
-        }
+
         toDoByUserTitle.setTasks(todo.getTasks());
         return toDoByUserTitle;
     }
@@ -79,10 +77,10 @@ public class ToDoServiceImpl implements ToDoService {
 
     public void deleteTodo(ToDo todo) {
         if (todo == null) {
-            throw new ToDoNotFoundException("ToDo is null!");
+            throw new ToDoValidationException("ToDo is null!");
         }
         if (!toDos.contains(todo)) {
-            throw new ToDoNotFoundException("ToDo List doesn't contain this ToDo!");
+            throw new ToDoValidationException("ToDo List doesn't contain this ToDo!");
         }
         toDos.remove(todo);
     }
@@ -94,13 +92,13 @@ public class ToDoServiceImpl implements ToDoService {
 
     public List<ToDo> getByUser(User user) {
         if (user == null) {
-            throw new ToDoNotFoundException("User is null!");
+            throw new ToDoValidationException("User is null!");
         }
         List<ToDo> list = toDos.stream()
                 .filter(toDo -> toDo.getOwner().equals(user))
                 .collect(Collectors.toList());
         if (list.isEmpty()) {
-            throw new ToDoNotFoundException("ToDos with user " + user + " have not been found!");
+            throw new ToDoValidationException("ToDos with user " + user + " have not been found!");
         }
         return list;
     }
@@ -108,17 +106,17 @@ public class ToDoServiceImpl implements ToDoService {
 
     public ToDo getByUserTitle(User user, String title) {
         if (user == null) {
-            throw new ToDoNotFoundException("User is null!");
+            throw new ToDoValidationException("User is null!");
         }
         if (title.isEmpty()) {
-            throw new ToDoNotFoundException("Title is empty!");
+            throw new ToDoValidationException("Title is empty!");
         }
         ToDo toDoByUserAndTitle = toDos.stream()
                 .filter(toDo -> toDo.getOwner().equals(user) && toDo.getTitle().equals(title))
                 .findFirst()
                 .orElse(null);
         if (toDoByUserAndTitle == null) {
-            throw new ToDoNotFoundException("ToDo with owner " + user + " and title " + title +
+            throw new ToDoValidationException("ToDo with owner " + user + " and title " + title +
                     " has not be found!");
         }
         return toDoByUserAndTitle;
