@@ -37,13 +37,9 @@ public class ToDoServiceTest {
     @Test
     @DisplayName("Test adding new ToDo with null")
     public void checkAddToDoWithNullUser() {
-        User oldUser = new User();
-        oldUser.setEmail("email@gmail.com");
-
-        ToDo toDo = new ToDo("Test", oldUser);
+        ToDo toDo = new ToDo("ToDo #1", null);
 
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.addTodo(toDo, null));
-
     }
 
     @Test
@@ -51,11 +47,15 @@ public class ToDoServiceTest {
     public void checkAddExistedToDo() {
         User user = new User();
         user.setEmail("email@gmail.com");
+        userService.addUser(user);
 
-        ToDo toDo = new ToDo("Test", user);
+        ToDo toDo = new ToDo("ToDo #1", user);
         toDoService.addTodo(toDo, user);
 
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.addTodo(toDo, user));
+
+        userService.deleteUser(user);
+        toDoService.deleteTodo(toDo);
     }
 
     @Test
@@ -63,13 +63,16 @@ public class ToDoServiceTest {
     public void checkAddToDoWithAnotherUser() {
         User oldUser = new User();
         oldUser.setEmail("email@gmail.com");
+        userService.addUser(oldUser);
 
         User newUser = new User();
-        newUser.setEmail("new@email.com");
+        newUser.setEmail("new_email@email.com");
 
-        ToDo toDo = new ToDo("Test", oldUser);
+        ToDo toDo = new ToDo("ToDo #1", oldUser);
 
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.addTodo(toDo, newUser));
+
+        userService.deleteUser(oldUser);
     }
 
     @Test
@@ -77,13 +80,13 @@ public class ToDoServiceTest {
     public void checkAddValidToDo() {
         User oldUser = new User();
         oldUser.setEmail("email@gmail.com");
+        userService.addUser(oldUser);
 
         User newUser = new User();
         newUser.setEmail("new@email.com");
-
         userService.addUser(newUser);
 
-        ToDo toDo = new ToDo("Test", oldUser);
+        ToDo toDo = new ToDo("ToDo #1", oldUser);
 
         ToDo actual = toDoService.addTodo(toDo, newUser);
         ToDo expected = toDoService.getAll().stream()
@@ -93,6 +96,8 @@ public class ToDoServiceTest {
         Assertions.assertNotNull(expected);
         Assertions.assertEquals(expected, actual);
 
+        userService.deleteUser(newUser);
+        userService.deleteUser(oldUser);
         toDoService.deleteTodo(toDo);
     }
 
@@ -106,10 +111,13 @@ public class ToDoServiceTest {
     @DisplayName("Test update non existed ToDo")
     public void checkUpdateNonExistedToDo() {
         User user = new User();
-        user.setEmail("new@email.com");
-        ToDo toDo = new ToDo("Test", user);
+        user.setEmail("email@email.com");
+        userService.addUser(user);
+        ToDo toDo = new ToDo("Task #1", user);
 
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.updateTodo(toDo));
+
+        userService.deleteUser(user);
     }
 
     @Test
@@ -119,22 +127,24 @@ public class ToDoServiceTest {
         user.setEmail("email@gmail.com");
         userService.addUser(user);
 
-        ToDo toDoNew = new ToDo("Test", user);
+        ToDo newToDo = new ToDo("ToDo #1", user);
+
         Task taskNew = new Task("Task #1", Priority.LOW);
-        toDoNew.setTasks(List.of(taskNew));
+        newToDo.setTasks(List.of(taskNew));
 
-        ToDo toDoOld = new ToDo("Test", user);
+        ToDo oldToDo = new ToDo("ToDo #1", user);
+
         Task taskOld = new Task("Task #3", Priority.MEDIUM);
-        toDoOld.setTasks(List.of(taskOld));
+        oldToDo.setTasks(List.of(taskOld));
 
-        toDoService.addTodo(toDoOld, user);
+        toDoService.addTodo(oldToDo, user);
 
 
-        ToDo actual = toDoService.updateTodo(toDoNew);
+        ToDo actual = toDoService.updateTodo(newToDo);
 
         Assertions.assertEquals(List.of(taskNew), actual.getTasks());
 
-        toDoService.deleteTodo(toDoOld);
+        toDoService.deleteTodo(oldToDo);
 
     }
 
@@ -151,9 +161,11 @@ public class ToDoServiceTest {
         user.setEmail("email@gmail.com");
         userService.addUser(user);
 
-        ToDo toDo = new ToDo("Test", user);
+        ToDo toDo = new ToDo("ToDo #5", user);
 
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.deleteTodo(toDo));
+
+        toDoService.deleteTodo(toDo);
     }
 
     @Test
@@ -163,7 +175,7 @@ public class ToDoServiceTest {
         user.setEmail("email@gmail.com");
         userService.addUser(user);
 
-        ToDo toDo = new ToDo("Test", user);
+        ToDo toDo = new ToDo("ToDo #1", user);
         toDoService.addTodo(toDo, user);
 
         toDoService.deleteTodo(toDo);
@@ -175,27 +187,29 @@ public class ToDoServiceTest {
     @Test
     @DisplayName("Test get All ToDo")
     public void checkGetAllToDo() {
-        User user1 = new User();
-        user1.setEmail("emailuser1@gmail.com");
+        User firstUser = new User();
+        firstUser.setEmail("first_email@gmail.com");
 
-        User user2 = new User();
-        user2.setEmail("emailuser2@gmail.com");
+        User secondUser = new User();
+        secondUser.setEmail("second_email@gmail.com");
 
-        userService.addUser(user1);
-        userService.addUser(user2);
+        userService.addUser(firstUser);
+        userService.addUser(secondUser);
 
-        ToDo toDo1 = new ToDo("Test1", user1);
-        ToDo toDo2 = new ToDo("Test2", user2);
+        ToDo firstToDo = new ToDo("ToDo #1", firstUser);
+        ToDo secondToDo = new ToDo("ToDo #2", secondUser);
 
-        toDoService.addTodo(toDo1, user1);
-        toDoService.addTodo(toDo2, user2);
+        toDoService.addTodo(firstToDo, firstUser);
+        toDoService.addTodo(secondToDo, secondUser);
 
-        List<ToDo> list = List.of(toDo1, toDo2);
+        List<ToDo> list = List.of(firstToDo, secondToDo);
 
         Assertions.assertEquals(list, toDoService.getAll());
 
-        toDoService.deleteTodo(toDo1);
-        toDoService.deleteTodo(toDo2);
+        toDoService.deleteTodo(firstToDo);
+        toDoService.deleteTodo(secondToDo);
+        userService.deleteUser(firstUser);
+        userService.deleteUser(secondUser);
     }
 
     @Test
@@ -208,7 +222,7 @@ public class ToDoServiceTest {
     @DisplayName("Test get ToDo by non existed User ")
     public void checkGetToDoByNonExistedUser() {
         User user = new User();
-        user.setEmail("emailuser@gmail.com");
+        user.setEmail("email@gmail.com");
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.getByUser(user));
     }
 
@@ -219,7 +233,7 @@ public class ToDoServiceTest {
         user.setEmail("email@gmail.com");
         userService.addUser(user);
 
-        ToDo toDo = new ToDo("Test", user);
+        ToDo toDo = new ToDo("ToDo #1", user);
         toDoService.addTodo(toDo, user);
 
         List<ToDo> actual = toDoService.getByUser(user);
@@ -227,6 +241,7 @@ public class ToDoServiceTest {
         Assertions.assertEquals(1, actual.size());
 
         toDoService.deleteTodo(toDo);
+        userService.deleteUser(user);
     }
 
     @Test
@@ -236,12 +251,14 @@ public class ToDoServiceTest {
     }
 
     @Test
-    @DisplayName("Test get ToDo by User and  empty Title ")
+    @DisplayName("Test get ToDo by User and empty Title ")
     public void checkGetByUserTitleWithEmptyTitle() {
         User user = new User();
         user.setEmail("email@gmail.com");
         userService.addUser(user);
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.getByUserTitle(user, ""));
+
+        userService.deleteUser(user);
 
     }
 
@@ -251,7 +268,7 @@ public class ToDoServiceTest {
         User user = new User();
         user.setEmail("email@gmail.com");
 
-        Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.getByUserTitle(user, "TitleTest"));
+        Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.getByUserTitle(user, "Title"));
 
     }
 
@@ -262,16 +279,17 @@ public class ToDoServiceTest {
         user.setEmail("email@gmail.com");
         userService.addUser(user);
 
-        ToDo toDo = new ToDo("Test #1", user);
+        ToDo toDo = new ToDo("ToDo #1", user);
         toDoService.addTodo(toDo, user);
 
-        ToDo actual = toDoService.getByUserTitle(user, "Test #1");
+        ToDo actual = toDoService.getByUserTitle(user, "ToDo #1");
 
         Assertions.assertEquals(toDo, actual);
         Assertions.assertEquals(user, actual.getOwner());
         Assertions.assertEquals(toDo.getTitle(), actual.getTitle());
 
         toDoService.deleteTodo(toDo);
+        userService.deleteUser(user);
 
 
     }

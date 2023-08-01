@@ -68,6 +68,9 @@ public class ToDoServiceImpl implements ToDoService {
         if (!toDos.contains(toDoByUserTitle)) {
             throw new ToDoNotFoundException("This ToDo has not been found!");
         }
+        if (todo.getTasks().equals(toDoByUserTitle.getTasks())){
+            throw new ToDoNotFoundException("This ToDo has the same Tasks!");
+        }
         toDoByUserTitle.setTasks(todo.getTasks());
         return toDoByUserTitle;
     }

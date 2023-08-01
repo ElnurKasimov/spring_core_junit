@@ -72,6 +72,14 @@ public class ToDo {
     public int hashCode() {
         return Objects.hash(title, createdAt, owner, tasks);
     }
-    // Constructor(s), getters, setters, hashCode, equals, etc.
 
+    @Override
+    public String toString() {
+        return "ToDo{" +
+                "title='" + title + '\'' +
+                ", createdAt=" + createdAt +
+                ", owner=" + owner +
+                ", tasks=" + tasks +
+                '}';
+    }
 }
