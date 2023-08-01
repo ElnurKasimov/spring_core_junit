@@ -30,25 +30,28 @@ public class TaskServiceImpl implements TaskService {
     public Task addTask(Task task, ToDo todo) {
         if (todo == null) throw new IllegalArgumentException("toDo must not be null");
         if (task == null) throw new IllegalArgumentException("task must not be null");
-        if(toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
+        if (toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
             throw new ToDoNotFoundException("There is no such toDo: " + todo);
-        List<Task> taskListToAdd = todo.getTasks();
-        if( taskListToAdd.contains(task) ) throw new DublicateTaskException(
+        List<Task> taskListToAdd = new ArrayList<>(todo.getTasks());
+
+        if (taskListToAdd.contains(task)) throw new DublicateTaskException(
                 "ToDo " + todo + " contains task " + task + " already.  There should only be one task.");
         //if(taskListToAdd.add(task)) throw new AddTaskException("Unsuccessful adding");
         // todo.setTasks(taskListToAdd);
         taskListToAdd.add(task);
+        todo.setTasks(taskListToAdd);
         return task;
     }
 
     public Task updateTask(Task task) {
         if (task == null) throw new IllegalArgumentException("task must not be null");
-        Predicate<ToDo> ifToDoContainsTask =  toDo -> getByToDo(toDo).contains(task);
-        ToDo containsTask =  toDoService.getAll().stream()
-                .filter( ifToDoContainsTask)
-                .findFirst().orElseThrow( () -> new TaskNotFoundException("There is no such task: " + task));
-        List<Task> duplicatesTask = getDuplicatesTaskFromToDo( toDoService.getAll());
-        if (! duplicatesTask.isEmpty()) throw new DublicateTaskException("There should only be one task. But such tasks are duplicated: \n" + duplicatesTask);
+        Predicate<ToDo> ifToDoContainsTask = toDo -> getByToDo(toDo).contains(task);
+        ToDo containsTask = toDoService.getAll().stream()
+                .filter(ifToDoContainsTask)
+                .findFirst().orElseThrow(() -> new TaskNotFoundException("There is no such task: " + task));
+        List<Task> duplicatesTask = getDuplicatesTaskFromToDo(toDoService.getAll());
+        if (!duplicatesTask.isEmpty())
+            throw new DublicateTaskException("There should only be one task. But such tasks are duplicated: \n" + duplicatesTask);
         List<Task> listToUpdate = containsTask.getTasks();
         int taskIndex = listToUpdate.indexOf(task);
         listToUpdate.set(taskIndex, task);
@@ -58,21 +61,22 @@ public class TaskServiceImpl implements TaskService {
 
     public void deleteTask(Task task) {
         if (task == null) throw new IllegalArgumentException("task must not be null");
-        Predicate<ToDo> ifToDoContainsTask =  toDo -> getByToDo(toDo).contains(task);
-        ToDo containsTask =  toDoService.getAll().stream()
-                .filter( ifToDoContainsTask)
-                .findFirst().orElseThrow( () -> new TaskNotFoundException("There is no such task: " + task));
-        List<Task> duplicatesTask = getDuplicatesTaskFromToDo( toDoService.getAll());
-        if (! duplicatesTask.isEmpty()) throw new DublicateTaskException("There should only be one task. But such tasks are duplicated: \n" + duplicatesTask);
+        Predicate<ToDo> ifToDoContainsTask = toDo -> getByToDo(toDo).contains(task);
+        ToDo containsTask = toDoService.getAll().stream()
+                .filter(ifToDoContainsTask)
+                .findFirst().orElseThrow(() -> new TaskNotFoundException("There is no such task: " + task));
+        List<Task> duplicatesTask = getDuplicatesTaskFromToDo(toDoService.getAll());
+        if (!duplicatesTask.isEmpty())
+            throw new DublicateTaskException("There should only be one task. But such tasks are duplicated: \n" + duplicatesTask);
         List<Task> listToDelete = containsTask.getTasks();
-        if(!containsTask.getTasks().remove(task)) throw new DeleteTaskException("Unsuccessful deleting");
+        if (!containsTask.getTasks().remove(task)) throw new DeleteTaskException("Unsuccessful deleting");
     }
 
-    public List<Task> getDuplicatesTaskFromToDo (List<ToDo> toDos) {
+    public List<Task> getDuplicatesTaskFromToDo(List<ToDo> toDos) {
         Map<Task, Long> duplicatesMap = toDos.stream()
                 .flatMap(t -> t.getTasks().stream())
                 .collect(Collectors.groupingBy(task -> task, Collectors.counting()));
-        return  duplicatesMap.entrySet().stream()
+        return duplicatesMap.entrySet().stream()
                 .filter(entry -> entry.getValue() > 1)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
@@ -86,35 +90,36 @@ public class TaskServiceImpl implements TaskService {
 
     public List<Task> getByToDo(ToDo todo) {
         if (todo == null) throw new IllegalArgumentException("toDo must not be null");
-        if(toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
+        if (toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
             throw new ToDoNotFoundException("There is no such toDo: " + todo);
         return todo.getTasks();
     }
 
     public Task getByToDoName(ToDo todo, String name) {
-       if (todo == null) throw new IllegalArgumentException("toDo must not be null");
-       if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
-       if(toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
-           throw new ToDoNotFoundException("There is no such toDo: " + todo);
-      // pay attention to the test
-       return todo.getTasks().stream()
-               .filter(task -> task.getName().equals(name))
-               .findFirst().orElse(null);
+        if (todo == null) throw new IllegalArgumentException("toDo must not be null");
+        if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
+        if (toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
+            throw new ToDoNotFoundException("There is no such toDo: " + todo);
+        // pay attention to the test
+        return todo.getTasks().stream()
+                .filter(task -> task.getName().equals(name))
+                .findFirst().orElse(null);
     }
 
     public Task getByUserName(User user, String name) {
         if (user == null) throw new IllegalArgumentException("user must not be null");
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
-        Task withSuchName = getAll(). stream()
+        Task withSuchName = getAll().stream()
                 .filter(task -> task.getName().equals(name))
                 .findFirst()
-                .orElseThrow( () -> new TaskNotFoundException("There is no task with name " + name) ) ;
+                .orElseThrow(() -> new TaskNotFoundException("There is no task with name " + name));
         List<Task> tasks = new ArrayList<>();
-        for( ToDo todo : toDoService.getAll()) {
-            if ( toDoService.getByUserTitle(user, todo.getTitle()).getTasks().contains(withSuchName) ) tasks.add(withSuchName);
+        for (ToDo todo : toDoService.getAll()) {
+            if (toDoService.getByUserTitle(user, todo.getTitle()).getTasks().contains(withSuchName))
+                tasks.add(withSuchName);
         }
         if (tasks.isEmpty()) throw new TaskNotFoundException("No user has task with name" + name);
-        if(tasks.size() > 1) throw new DublicateTaskException("More than one user has task with name " + name );
+        if (tasks.size() > 1) throw new DublicateTaskException("More than one user has task with name " + name);
         return withSuchName;
     }
 

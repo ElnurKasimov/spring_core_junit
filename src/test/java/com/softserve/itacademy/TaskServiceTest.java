@@ -109,12 +109,12 @@ public class TaskServiceTest {
     }
     @Test
     public void testThatAddTaskArgumentsNotNullWorkCorrectly() {
-        try {
-            taskService.addTask(new Task("ttt", Priority.HIGH), checkTests);
-        } catch (IllegalArgumentException e) {
+        Task actual = taskService.addTask(new Task("ttt", Priority.HIGH), checkTests);
 
-            throw new AssertionError("Expected no exception, but got: " + e.getMessage());
-        }
+        Task task = new Task("ttt", Priority.HIGH);
+
+        Assertions.assertEquals(task, actual);
+
     }
 
     @Test
