@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Objects;
 
-@Component
 public class User {
 
     private String firstName;
@@ -18,12 +17,14 @@ public class User {
     private String password;
 
     private List<ToDo> myTodos;
-    @Autowired
     public User(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+    }
+
+    public User() {
     }
 
     public String getFirstName() {
