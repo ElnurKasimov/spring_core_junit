@@ -1,13 +1,13 @@
 package com.softserve.itacademy.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.softserve.itacademy.exceptions.TaskNotFoundException;
-import com.softserve.itacademy.exceptions.ToDoIllegalArgumentException;
-import com.softserve.itacademy.exceptions.ToDoNotFoundException;
+import com.softserve.itacademy.exceptions.*;
+import com.sun.tools.javac.comp.Todo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,77 +33,93 @@ public class TaskServiceImpl implements TaskService {
         if(toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
             throw new ToDoNotFoundException("There is no such toDo: " + todo);
         List<Task> taskListToAdd = todo.getTasks();
-        if( taskListToAdd.stream().anyMatch(t -> t.equals(task)) ) throw new ToDoIllegalArgumentException(
+        if( taskListToAdd.contains(task) ) throw new DublicateTaskException(
                 "ToDo " + todo + " contains task " + task + " already.  There should only be one task.");
-        taskListToAdd.add(task);
+        if(taskListToAdd.add(task)) throw new AddTaskException("Unsuccessful adding");
         todo.setTasks(taskListToAdd);
         return task;
     }
 
     public Task updateTask(Task task) {
         if (task == null) throw new IllegalArgumentException("task must not be null");
-        if(getAll().stream()
-                .map(Task::getName)
-                .noneMatch(name -> name.equals(task.getName())))
-            throw new TaskNotFoundException("There is no such task: " + task);
-        // ---------------------------------------------------------
-        Predicate<ToDo> ifToDoContainsMoreThanOneEqualTask =
-                toDo -> toDo.getTasks().stream().filter(t -> t.equals(task)).skip(1).findFirst().orElse(null) != null;
-        ToDo containsMoreThanOneEqualTask =  toDoService.getAll().stream()
-                .filter( ifToDoContainsMoreThanOneEqualTask)
-                .findFirst().orElse(null);
-// --------------------------------------------------------------------
-
-        Predicate<ToDo> ifToDoContainsTask =
-                toDo -> toDo.getTasks().stream().filter(t -> t.equals(task)).findFirst().orElse(null) != null;
+        Predicate<ToDo> ifToDoContainsTask =  toDo -> getByToDo(toDo).contains(task);
         ToDo containsTask =  toDoService.getAll().stream()
                 .filter( ifToDoContainsTask)
-                .findFirst().orElse(null);
-        int taskIndex = containsTask.getTasks().indexOf(task);
-        containsTask.getTasks().set(taskIndex, task);
+                .findFirst().orElseThrow( () -> new TaskNotFoundException("There is no such task: " + task));
+        List<Task> duplicatesTask = getDuplicatesTaskFromToDo( toDoService.getAll());
+        if (! duplicatesTask.isEmpty()) throw new DublicateTaskException("There should only be one task. But such tasks are duplicated: \n" + duplicatesTask);
+        List<Task> listToUpdate = containsTask.getTasks();
+        int taskIndex = listToUpdate.indexOf(task);
+        listToUpdate.set(taskIndex, task);
+        containsTask.setTasks(listToUpdate);
         return task;
     }
 
     public void deleteTask(Task task) {
         if (task == null) throw new IllegalArgumentException("task must not be null");
-        if(getAll().stream()
-                .map(Task::getName)
-                .noneMatch(name -> name.equals(task.getName())))
-            throw new TaskNotFoundException("There is no such task: " + task);
-        Predicate<ToDo> ifToDoContainsTask =  toDo -> toDo.getTasks().stream().filter(t -> t.equals(task)).findFirst().orElse(null) != null;
-
-        // to simplify predicate's code use method  getByToDo.  obtain list and list.contains(element)
-
-
+        Predicate<ToDo> ifToDoContainsTask =  toDo -> getByToDo(toDo).contains(task);
         ToDo containsTask =  toDoService.getAll().stream()
                 .filter( ifToDoContainsTask)
-                .findFirst().orElse(null);
+                .findFirst().orElseThrow( () -> new TaskNotFoundException("There is no such task: " + task));
+        List<Task> duplicatesTask = getDuplicatesTaskFromToDo( toDoService.getAll());
+        if (! duplicatesTask.isEmpty()) throw new DublicateTaskException("There should only be one task. But such tasks are duplicated: \n" + duplicatesTask);
+        List<Task> listToDelete = containsTask.getTasks();
+        if(!containsTask.getTasks().remove(task)) throw new DeleteTaskException("Unsuccessful deleting");
+    }
 
+    public List<Task> getDuplicatesTaskFromToDo (List<ToDo> toDos) {
+        Map<Task, Long> duplicatesMap = toDos.stream()
+                .flatMap(t -> t.getTasks().stream())
+                .collect(Collectors.groupingBy(task -> task, Collectors.counting()));
+        return  duplicatesMap.entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 
     public List<Task> getAll() {
+        // если вернулся пустой список, то считать ли это ошибкой?
         return toDoService.getAll().stream()
                 .flatMap(toDo -> toDo.getTasks().stream())
                 .collect(Collectors.toList());
     }
 
     public List<Task> getByToDo(ToDo todo) {
-        //проверить вход на нал
+        // если вернулся пустой список, то считать ли это ошибкой?
+        if (todo == null) throw new IllegalArgumentException("toDo must not be null");
+        if(toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
+            throw new ToDoNotFoundException("There is no such toDo: " + todo);
         return todo.getTasks();
     }
 
     public Task getByToDoName(ToDo todo, String name) {
        if (todo == null) throw new IllegalArgumentException("toDo must not be null");
        if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
-       // pay attention to the test
+       if(toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
+           throw new ToDoNotFoundException("There is no such toDo: " + todo);
+      // pay attention to the test
        return todo.getTasks().stream()
                .filter(task -> task.getName().equals(name))
                .findFirst().orElse(null);
     }
 
     public Task getByUserName(User user, String name) {
-        // TODO
-        return null;
+        if (user == null) throw new IllegalArgumentException("user must not be null");
+        if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
+
+        // find task by name
+        Task withSuchName = getAll(). stream()
+                .filter(task -> task.getName().equals(name))
+                .findFirst()
+                .orElseThrow( () -> new TaskNotFoundException("There is no task with name " + name) ) ;
+        List<Task> tasks = new ArrayList<>();
+        for( ToDo todo : toDoService.getAll()) {
+            if ( toDoService.getByUserTitle(user, todo.getTitle()).getTasks().contains(withSuchName) ) tasks.add(withSuchName);
+        }
+        if (tasks.isEmpty()) throw new TaskNotFoundException("Any user has task with name" + name);
+        if(tasks.size() > 1) throw new DublicateTaskException("More than one user has task with name " + name );
+
+        return withSuchName;
     }
 
 }
