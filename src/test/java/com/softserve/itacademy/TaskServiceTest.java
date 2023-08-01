@@ -104,15 +104,23 @@ public class TaskServiceTest {
                 Stream.of(
                         Arguments.arguments(null, checkTests),
                         Arguments.arguments(makeReview, null),
-                        Arguments.arguments(null, null),
-                        Arguments.arguments(makeReview, checkTests)
+                        Arguments.arguments(null, null)
                 );
+    }
+    @Test
+    public void testThatAddTaskArgumentsNotNullWorkCorrectly() {
+        Task actual = taskService.addTask(new Task("ttt", Priority.HIGH), checkTests);
+
+        Task task = new Task("ttt", Priority.HIGH);
+
+        Assertions.assertEquals(task, actual);
+
     }
 
     @Test
-    public void testThatArgumentsTodoIsPresentInMethodAddTask() {
+    public void testThatAddTaskArgumentsTodoIsPresent() {
         //given
-        ToDo forTestOfPresenceToDo = new ToDo("test", manager);
+        ToDo forTestOfPresenceToDo = new ToDo("test",manager);
          // when then
         assertThrows(ToDoNotFoundException.class,() -> taskService.addTask(makeRefactoring, forTestOfPresenceToDo));
     }
