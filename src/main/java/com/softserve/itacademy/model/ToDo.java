@@ -8,7 +8,7 @@ public class ToDo {
 
     private String title;
 
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
 
     private User owner;
 
@@ -34,14 +34,6 @@ public class ToDo {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 
     public User getOwner() {

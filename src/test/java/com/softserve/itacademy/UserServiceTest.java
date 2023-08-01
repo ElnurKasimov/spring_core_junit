@@ -1,6 +1,5 @@
 package com.softserve.itacademy;
 
-import com.softserve.itacademy.exceptions.ToDoNotFoundException;
 import com.softserve.itacademy.exceptions.UserNotFoundException;
 import com.softserve.itacademy.model.ToDo;
 import org.junit.jupiter.api.Assertions;
