@@ -104,23 +104,15 @@ public class TaskServiceTest {
                 Stream.of(
                         Arguments.arguments(null, checkTests),
                         Arguments.arguments(makeReview, null),
-                        Arguments.arguments(null, null)
+                        Arguments.arguments(null, null),
+                        Arguments.arguments(makeReview, checkTests)
                 );
     }
-    @Test
-    public void testThatAddTaskArgumentsNotNullWorkCorrectly() {
-        try {
-            taskService.addTask(new Task("ttt", Priority.HIGH), checkTests);
-        } catch (IllegalArgumentException e) {
-
-            throw new AssertionError("Expected no exception, but got: " + e.getMessage());
-        }
-    }
 
     @Test
-    public void testThatAddTaskArgumentsTodoIsPresent() {
+    public void testThatArgumentsTodoIsPresentInMethodAddTask() {
         //given
-        ToDo forTestOfPresenceToDo = new ToDo("test",manager);
+        ToDo forTestOfPresenceToDo = new ToDo("test", manager);
          // when then
         assertThrows(ToDoNotFoundException.class,() -> taskService.addTask(makeRefactoring, forTestOfPresenceToDo));
     }
