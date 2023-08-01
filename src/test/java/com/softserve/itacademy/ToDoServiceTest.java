@@ -13,9 +13,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import com.softserve.itacademy.model.User;
 import com.softserve.itacademy.service.UserService;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RunWith(JUnitPlatform.class)
 public class ToDoServiceTest {
@@ -24,7 +22,7 @@ public class ToDoServiceTest {
 
 
     @BeforeAll
-    public static void setupBeforeClass() throws Exception {
+    public static void setupBeforeClass() {
         AnnotationConfigApplicationContext annotationConfigContext = new AnnotationConfigApplicationContext(Config.class);
         userService = annotationConfigContext.getBean(UserService.class);
         annotationConfigContext.close();
@@ -54,8 +52,8 @@ public class ToDoServiceTest {
 
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.addTodo(toDo, user));
 
-        userService.deleteUser(user);
         toDoService.deleteTodo(toDo);
+        userService.deleteUser(user);
     }
 
     @Test
@@ -96,9 +94,9 @@ public class ToDoServiceTest {
         Assertions.assertNotNull(expected);
         Assertions.assertEquals(expected, actual);
 
-        userService.deleteUser(newUser);
-        userService.deleteUser(oldUser);
         toDoService.deleteTodo(toDo);
+        userService.deleteUser(oldUser);
+        userService.deleteUser(newUser);
     }
 
     @Test
@@ -144,6 +142,7 @@ public class ToDoServiceTest {
 
         Assertions.assertEquals(List.of(taskNew), actual.getTasks());
 
+        userService.deleteUser(user);
         toDoService.deleteTodo(oldToDo);
 
     }
@@ -165,7 +164,7 @@ public class ToDoServiceTest {
 
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.deleteTodo(toDo));
 
-        toDoService.deleteTodo(toDo);
+        userService.deleteUser(user);
     }
 
     @Test
@@ -181,6 +180,7 @@ public class ToDoServiceTest {
         toDoService.deleteTodo(toDo);
 
         Assertions.assertFalse(toDoService.getAll().contains(toDo));
+        userService.deleteUser(user);
 
     }
 
