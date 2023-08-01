@@ -96,23 +96,27 @@ public class TaskServiceImpl implements TaskService {
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
         if (toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
             throw new ToDoNotFoundException("There is no such toDo: " + todo);
-        // pay attention to the test
         return todo.getTasks().stream()
                 .filter(task -> task.getName().equals(name))
-                .findFirst().orElse(null);
+                .findFirst().orElseThrow(() -> new TaskNotFoundException("There is no task with name : " +  name));
     }
 
     public Task getByUserName(User user, String name) {
         if (user == null) throw new IllegalArgumentException("user must not be null");
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
+
         Task withSuchName = getAll().stream()
                 .filter(task -> task.getName().equals(name))
                 .findFirst()
                 .orElseThrow(() -> new TaskNotFoundException("There is no task with name " + name));
         List<Task> tasks = new ArrayList<>();
         for (ToDo todo : toDoService.getAll()) {
-            if (toDoService.getByUserTitle(user, todo.getTitle()).getTasks().contains(withSuchName))
-                tasks.add(withSuchName);
+            try {
+                if (toDoService.getByUserTitle(user, todo.getTitle()).getTasks().contains(withSuchName));
+            } catch (Exception e) {
+                throw new UserNotFoundException("There is no user : " + user) ;
+            }
+            tasks.add(withSuchName);
         }
         if (tasks.isEmpty()) throw new TaskNotFoundException("No user has task with name" + name);
         if (tasks.size() > 1) throw new DublicateTaskException("More than one user has task with name " + name);

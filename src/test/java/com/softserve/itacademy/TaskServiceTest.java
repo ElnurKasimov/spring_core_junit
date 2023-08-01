@@ -3,6 +3,7 @@ package com.softserve.itacademy;
 import com.softserve.itacademy.exceptions.DublicateTaskException;
 import com.softserve.itacademy.exceptions.TaskNotFoundException;
 import com.softserve.itacademy.exceptions.ToDoNotFoundException;
+import com.softserve.itacademy.exceptions.UserNotFoundException;
 import com.softserve.itacademy.model.Priority;
 import com.softserve.itacademy.model.Task;
 import com.softserve.itacademy.model.ToDo;
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.junit.jupiter.params.ParameterizedTest;
 import com.softserve.itacademy.model.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -70,7 +72,7 @@ public class TaskServiceTest {
         toDoService.addTodo(createCode,developer);
     }
 
-    @ParameterizedTest (name = "#{index} - Test  that checks if  is it possible to pass in parameter  task = {0} and todo = {1}")
+    @ParameterizedTest (name = "#{index} - Test  that checks if  is it possible to pass in parameter addTask   task = {0} and todo = {1}")
     @MethodSource("predefinedAddTaskArgumentsForCheckingNull")
     public void testThatAddTaskArgumentsNotContainsNull(Task task, ToDo todo) {
         assertThrows(IllegalArgumentException.class,() -> taskService.addTask(task, todo));
@@ -125,7 +127,7 @@ public class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Test that updateTask() work when there is no duplicated tasks")
+    @DisplayName("Test that updateTask() works when there is no duplicated tasks")
     public void testThatUpdateTaskDoesNotWorkWithDuplicatedTasks() {
         //given
         User tester = new User("Mykola", "Stasiv", "mykola@gmail.com", "kjhvfg");
@@ -140,8 +142,8 @@ public class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Test that updateTask() work correctly")
-    public void testThatUpdateTaskWorkCorrectly() {
+    @DisplayName("Test that updateTask() works correctly")
+    public void testThatUpdateTaskWorksCorrectly() {
         //given
         makeRefactoring.setPriority(Priority.HIGH);
         // when
@@ -169,7 +171,7 @@ public class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Test that updateTask() work when there is no duplicated tasks")
+    @DisplayName("Test that updateTask() works when there is no duplicated tasks")
     public void testThatDeleteTaskDoesNotWorkWithDuplicatedTasks() {
         //given
         User tester = new User("Mykola", "Stasiv", "mykola@gmail.com", "kjhvfg");
@@ -184,8 +186,8 @@ public class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Test that deleteTask() work correctly")
-    public void testThatDeleteTaskWorkCorrectly() {
+    @DisplayName("Test that deleteTask() works correctly")
+    public void testThatDeleteTaskWorksCorrectly() {
         //given
         // when
        taskService.deleteTask(makeRefactoring);
@@ -193,6 +195,133 @@ public class TaskServiceTest {
         List<Task> expected = List.of(makeReview);
         assertEquals(expected, checkCode.getTasks());
         taskService.addTask(makeRefactoring, checkCode);
+    }
+
+    @Test
+    @DisplayName("Test that getAll() works correctly")
+    public void testThatGetAllWorksCorrectly() {
+        //given
+        // when
+        taskService.getAll();
+        // then
+        List<Task> expected = List.of(makeReview, makeRefactoring, writeCode, writeTests);
+        assertEquals(expected, taskService.getAll());
+    }
+
+    @Test
+    @DisplayName("Test that parameter getByToDo()  shouldn't be null")
+    public void testThatGetByToDoArgumentNotContainsNull() {
+        assertThrows(IllegalArgumentException.class,() -> taskService.getByToDo(null));
+    }
+
+    @Test
+    @DisplayName("Test that todo in parameter  getByToDo()  exists already")
+
+    public void testThatGetByToDoArgumentExistAlready() {
+        //given
+        ToDo someToDo = new ToDo("someToDo", teamLead, new ArrayList<>() );
+        // when then
+        assertThrows(ToDoNotFoundException.class,() -> taskService.getByToDo(someToDo));
+    }
+
+    @Test
+    @DisplayName("Test that getByToDo() works correctly")
+    public void testThatGetByToDoWorksCorrectly() {
+        //given
+        // when
+        // then
+        List<Task> expected = List.of(makeReview, makeRefactoring);
+        assertEquals(expected, taskService.getByToDo(checkCode));
+    }
+
+    @ParameterizedTest (name = "#{index} - Test  that checks if  is it possible to pass in parameter getByToDoName  todo = {0} and name = {1}")
+    @MethodSource("predefinedGetByToDoNameArgumentsForCheckingNull")
+    public void testThatGetByToDoNameArgumentsNotContainsNull(ToDo todo, String name) {
+        assertThrows(IllegalArgumentException.class,() -> taskService.getByToDoName(todo, name));
+    }
+
+    private static Stream<Arguments> predefinedGetByToDoNameArgumentsForCheckingNull() {
+        return
+                Stream.of(
+                        Arguments.arguments(null, "writeCode"),
+                        Arguments.arguments(checkCode, null),
+                        Arguments.arguments(checkCode, ""),
+                        Arguments.arguments(null, null)
+                );
+    }
+
+    @Test
+    @DisplayName("Test that todo in parameter  getByToDoName()  exists already")
+
+    public void testThatToDoArgumentExistAlready() {
+        //given
+        ToDo someToDo = new ToDo("someToDo", teamLead, new ArrayList<>() );
+        // when then
+        assertThrows(ToDoNotFoundException.class,() -> taskService.getByToDoName(someToDo, "writeCode"));
+    }
+
+    @Test
+    @DisplayName("Test that name in parameter  getByToDoName()  exists already")
+
+    public void testThatNameArgumentExistAlready() {
+        //given
+        // when then
+        assertThrows(TaskNotFoundException.class,() -> taskService.getByToDoName(checkCode, "writeCode"));
+    }
+
+    @Test
+    @DisplayName("Test that getByToDoName() works correctly")
+    public void testThatGetByToDoNameWorksCorrectly() {
+        //given
+        // when
+        // then
+        Task expected = writeCode;
+        assertEquals(expected, taskService.getByToDoName(createCode, "writeCode"));
+    }
+
+    @ParameterizedTest (name = "#{index} - Test  that checks if  is it possible to pass in parameter getByUserName  user = {0} and name = {1}")
+    @MethodSource("predefinedGetByUserNameArgumentsForCheckingNull")
+    public void testThatGetByUserNameArgumentsNotContainsNull(User user, String name) {
+        assertThrows(IllegalArgumentException.class,() -> taskService.getByUserName(user, name));
+    }
+
+    private static Stream<Arguments> predefinedGetByUserNameArgumentsForCheckingNull() {
+        return
+                Stream.of(
+                        Arguments.arguments(null, "writeCode"),
+                        Arguments.arguments(developer, null),
+                        Arguments.arguments(developer, ""),
+                        Arguments.arguments(null, null)
+                );
+    }
+
+    @Test
+    @DisplayName("Test that user in parameter  getByUserName()  exists already")
+
+    public void testThatUserArgumentExistAlready() {
+        //given
+        User tester = new User("Mykola", "Stasiv", "mykola@gmail.com", "kjhvfg");
+        // when then
+        assertThrows(UserNotFoundException.class,() -> taskService.getByUserName(tester, "writeTests"));
+    }
+
+    @Test
+    @DisplayName("Test that name in parameter  getByUserName()  exists already")
+
+    public void testThatNameInArgumentExistAlready() {
+        //given
+        // when then
+        assertThrows(TaskNotFoundException.class,() -> taskService.getByUserName(developer, "coverCodeByTests"));
+    }
+
+    @Test
+    @DisplayName("Test that getByUserName() works correctly")
+    public void testThatGetByUserNameWorksCorrectly() {
+        //given
+        // when
+        // then
+        Task expected = writeCode;
+        assertEquals(expected, taskService.getByUserName(developer, "writeCode"));
     }
 
 }
