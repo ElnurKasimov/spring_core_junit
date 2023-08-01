@@ -14,9 +14,16 @@ public class ToDo {
 
     private List<Task> tasks;
 
-    public ToDo(String title, LocalDateTime createdAt, User owner, List<Task> tasks) {
+    public ToDo(String title, User owner) {
         this.title = title;
-        this.createdAt = createdAt;
+        this.owner = owner;
+        this.createdAt = LocalDateTime.now();
+
+    }
+
+    public ToDo(String title, User owner, List<Task> tasks) {
+        this.title = title;
+        this.createdAt = LocalDateTime.now();
         this.owner = owner;
         this.tasks = tasks;
     }
@@ -65,6 +72,14 @@ public class ToDo {
     public int hashCode() {
         return Objects.hash(title, createdAt, owner, tasks);
     }
-    // Constructor(s), getters, setters, hashCode, equals, etc.
 
+    @Override
+    public String toString() {
+        return "ToDo{" +
+                "title='" + title + '\'' +
+                ", createdAt=" + createdAt +
+                ", owner=" + owner +
+                ", tasks=" + tasks +
+                '}';
+    }
 }
