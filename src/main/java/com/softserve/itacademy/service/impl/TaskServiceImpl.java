@@ -35,8 +35,7 @@ public class TaskServiceImpl implements TaskService {
         List<Task> taskListToAdd = new ArrayList<>(todo.getTasks());
         if (taskListToAdd.contains(task)) throw new DublicateTaskException(
                 "ToDo " + todo + " contains task " + task + " already.  There should only be one task.");
-        taskListToAdd.add(task);
-        todo.setTasks(taskListToAdd);
+        if (!taskListToAdd.add(task)) throw new AddTaskException("Unsuccessful deleting");
         return task;
     }
 
@@ -52,7 +51,6 @@ public class TaskServiceImpl implements TaskService {
         List<Task> listToUpdate = containsTask.getTasks();
         int taskIndex = listToUpdate.indexOf(task);
         listToUpdate.set(taskIndex, task);
-        // containsTask.setTasks(listToUpdate);
         return task;
     }
 

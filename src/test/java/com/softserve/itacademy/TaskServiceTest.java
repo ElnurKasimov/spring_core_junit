@@ -1,6 +1,7 @@
 package com.softserve.itacademy;
 
 import com.softserve.itacademy.exceptions.DublicateTaskException;
+import com.softserve.itacademy.exceptions.TaskNotFoundException;
 import com.softserve.itacademy.exceptions.ToDoNotFoundException;
 import com.softserve.itacademy.model.Priority;
 import com.softserve.itacademy.model.Task;
@@ -8,27 +9,23 @@ import com.softserve.itacademy.model.ToDo;
 import com.softserve.itacademy.service.TaskService;
 import com.softserve.itacademy.service.ToDoService;
 import com.softserve.itacademy.service.UserService;
-import com.softserve.itacademy.service.impl.TaskServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import com.softserve.itacademy.model.User;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 @RunWith(JUnitPlatform.class)
 public class TaskServiceTest {
@@ -36,10 +33,10 @@ public class TaskServiceTest {
     private static ToDoService toDoService;
     private static TaskService taskService;
 
-    private static User manager;
+    private static User teamLead;
     private static User developer;
-    private static ToDo checkTests;
-    private static ToDo createTests;
+    private static ToDo checkCode;
+    private static ToDo createCode;
 
     private static Task makeReview;
     private static Task makeRefactoring;
@@ -57,69 +54,89 @@ public class TaskServiceTest {
 
     @BeforeAll
     public static void initUserAndTodo() {
-        manager = new User("Ilon", "Mask", "wer@com.ua", "qwerty");
+        teamLead = new User("Ilon", "Mask", "wer@com.ua", "qwerty");
         developer = new User("Petro", "Stepanov", "petro@gmail.com", "asdfg");
-        userService.addUser(manager);
+        userService.addUser(teamLead);
         userService.addUser(developer);
 
         makeReview = new Task("makeReview", Priority.HIGH);
         makeRefactoring = new Task("makeRefactor", Priority.LOW);
-        checkTests = new ToDo("CheckTests",  manager,
+        checkCode = new ToDo("CheckTests", teamLead,
                 List.of(makeReview, makeRefactoring));
         writeCode = new Task("writeCode", Priority.HIGH);
         writeTests = new Task("writeTests", Priority.HIGH);
-        createTests = new ToDo("createTests",  developer,
+        createCode = new ToDo("createCode",  developer,
                 List.of(writeCode, writeTests));
-        toDoService.addTodo(checkTests,manager);
-        toDoService.addTodo(createTests,developer);
+        toDoService.addTodo(checkCode, teamLead);
+        toDoService.addTodo(createCode,developer);
     }
 
-    @ParameterizedTest (name = "#{index} - Test with task = {0} and todo = {1}")
+    @ParameterizedTest (name = "#{index} - Test  that checks if  is it possible to pass in parameter  task = {0} and todo = {1}")
     @MethodSource("predefinedAddTaskArgumentsForCheckingNull")
     public void testThatAddTaskArgumentsNotContainsNull(Task task, ToDo todo) {
-        //given
-        // when then
         assertThrows(IllegalArgumentException.class,() -> taskService.addTask(task, todo));
     }
 
     private static Stream<Arguments> predefinedAddTaskArgumentsForCheckingNull() {
         return
                 Stream.of(
-                        Arguments.arguments(null, checkTests),
+                        Arguments.arguments(null, checkCode),
                         Arguments.arguments(makeReview, null),
                         Arguments.arguments(null, null)
                 );
     }
 
     @Test
+    @DisplayName("Test that checks if  ToDo in parameter addTask exist")
     public void testThatToDoNotExistInArgumentsAddTask() {
         //given
-        ToDo forTestOfPresenceToDo = new ToDo("test",manager);
+        ToDo forTestOfPresenceToDo = new ToDo("test", teamLead);
          // when then
         assertThrows(ToDoNotFoundException.class,() -> taskService.addTask(makeRefactoring, forTestOfPresenceToDo));
     }
 
     @Test
+    @DisplayName("Test that checks if  task to add with addTask() exist already")
     public void testThatThereIsNoDuplicatedTasks() {
-        assertThrows(DublicateTaskException.class,() -> taskService.addTask(writeCode, createTests));
+        assertThrows(DublicateTaskException.class,() -> taskService.addTask(writeCode, createCode));
     }
 
     @Test
+    @DisplayName("Test that checks if  addTask()  works correctly and no exception will be thrown")
     public void testThatAddTaskArgumentsNotNullWorkCorrectly() {
-        Task actual = taskService.addTask(new Task("ttt", Priority.HIGH), checkTests);
-
-        Task task = new Task("ttt", Priority.HIGH);
-
-        Assertions.assertEquals(task, actual);
-
+        Task actual = taskService.addTask(new Task("ttt", Priority.HIGH), checkCode);
+        Task expected = new Task("ttt", Priority.HIGH);
+        Assertions.assertEquals(expected, actual, "addTask() doesn't work properly.");
     }
 
+    @Test
+    @DisplayName("Test that parameter updateTask()  shouldn't be null")
+    public void testThatUpdateTaskArgumentNotContainsNull() {
+        assertThrows(IllegalArgumentException.class,() -> taskService.updateTask(null));
+    }
 
+    @Test
+    @DisplayName("Test that task in parameter updateTask()  exists already")
 
+    public void testThatUpdateTaskArgumentExistAlready() {
+        //given
+        Task someTask = new Task("someTask", Priority.LOW);
+        // when then
+        assertThrows(TaskNotFoundException.class,() -> taskService.updateTask(someTask));
+    }
 
+    @Test
+    @DisplayName("Test that updateTask() work when there is no duplicated tasks")
 
-
-
-
-    // TODO, other tests
+    public void testThatUpdateTaskDoesntWorkWithDuplicatedTasks() {
+        //given
+        User tester = new User("Mykola", "Stasiv", "mykola@gmail.com", "kjhvfg");
+        userService.addUser(tester);
+        Task checkTests = new Task("writeTests", Priority.HIGH);
+        ToDo testing = new ToDo("testing",  tester,  List.of(writeTests));
+        toDoService.addTodo(testing, tester);
+        taskService.addTask(writeTests, testing);
+// when then
+        assertThrows(DublicateTaskException.class,() -> taskService.updateTask(writeTests));
+    }
 }
