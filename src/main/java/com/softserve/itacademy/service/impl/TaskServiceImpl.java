@@ -36,7 +36,7 @@ public class TaskServiceImpl implements TaskService {
         if( taskListToAdd.contains(task) ) throw new DublicateTaskException(
                 "ToDo " + todo + " contains task " + task + " already.  There should only be one task.");
         if(taskListToAdd.add(task)) throw new AddTaskException("Unsuccessful adding");
-        todo.setTasks(taskListToAdd);
+        // todo.setTasks(taskListToAdd);
         return task;
     }
 
@@ -51,7 +51,7 @@ public class TaskServiceImpl implements TaskService {
         List<Task> listToUpdate = containsTask.getTasks();
         int taskIndex = listToUpdate.indexOf(task);
         listToUpdate.set(taskIndex, task);
-        containsTask.setTasks(listToUpdate);
+        // containsTask.setTasks(listToUpdate);
         return task;
     }
 
@@ -78,14 +78,12 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public List<Task> getAll() {
-        // если вернулся пустой список, то считать ли это ошибкой?
         return toDoService.getAll().stream()
                 .flatMap(toDo -> toDo.getTasks().stream())
                 .collect(Collectors.toList());
     }
 
     public List<Task> getByToDo(ToDo todo) {
-        // если вернулся пустой список, то считать ли это ошибкой?
         if (todo == null) throw new IllegalArgumentException("toDo must not be null");
         if(toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
             throw new ToDoNotFoundException("There is no such toDo: " + todo);
@@ -106,8 +104,6 @@ public class TaskServiceImpl implements TaskService {
     public Task getByUserName(User user, String name) {
         if (user == null) throw new IllegalArgumentException("user must not be null");
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("name must not be null or empty");
-
-        // find task by name
         Task withSuchName = getAll(). stream()
                 .filter(task -> task.getName().equals(name))
                 .findFirst()
@@ -116,9 +112,8 @@ public class TaskServiceImpl implements TaskService {
         for( ToDo todo : toDoService.getAll()) {
             if ( toDoService.getByUserTitle(user, todo.getTitle()).getTasks().contains(withSuchName) ) tasks.add(withSuchName);
         }
-        if (tasks.isEmpty()) throw new TaskNotFoundException("Any user has task with name" + name);
+        if (tasks.isEmpty()) throw new TaskNotFoundException("No user has task with name" + name);
         if(tasks.size() > 1) throw new DublicateTaskException("More than one user has task with name " + name );
-
         return withSuchName;
     }
 
