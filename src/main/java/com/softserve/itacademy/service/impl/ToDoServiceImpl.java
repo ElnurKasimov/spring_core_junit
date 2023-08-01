@@ -37,7 +37,9 @@ public class ToDoServiceImpl implements ToDoService {
                 .orElse(null);
 
         List<ToDo> toDoList = getAll();
+
         String title = todo.getTitle();
+
         ToDo toDoInList = toDoList.stream()
                 .filter(toDoFromList -> toDoFromList.getTitle().equals(title)
                         && toDoFromList.getOwner().equals(user))

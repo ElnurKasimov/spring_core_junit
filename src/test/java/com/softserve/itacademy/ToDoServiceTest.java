@@ -35,9 +35,13 @@ public class ToDoServiceTest {
     @Test
     @DisplayName("Test adding new ToDo with null")
     public void checkAddToDoWithNullUser() {
-        ToDo toDo = new ToDo("ToDo #1", null);
+        User user = new User();
+        user.setEmail("email@gmail.com");
+        userService.addUser(user);
+        ToDo toDo = new ToDo("ToDo #1", user);
 
         Assertions.assertThrows(ToDoNotFoundException.class, () -> toDoService.addTodo(toDo, null));
+        userService.deleteUser(user);
     }
 
     @Test
