@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
         if (user == null){
             throw new UserNotFoundException("User is null");
         }
-        if (users.contains(user)){
+        if (users.stream().anyMatch(x->x.getEmail().equals(user.getEmail()))){
             users.remove(user);
         }
         else{
