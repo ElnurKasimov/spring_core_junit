@@ -98,7 +98,7 @@ public class TaskServiceImpl implements TaskService {
             throw new ToDoValidationException("There is no such toDo: " + todo);
         return todo.getTasks().stream()
                 .filter(task -> task.getName().equals(name))
-                .findFirst().orElse(null);
+                .findFirst().orElseThrow(() -> new TaskNotFoundException("There is no task with name : " +  name));
     }
 
     public Task getByUserName(User user, String name) {
@@ -110,14 +110,13 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(() -> new TaskNotFoundException("There is no task with name " + name));
         List<Task> tasks = new ArrayList<>();
         for (ToDo todo : toDoService.getAll()) {
+            String toDoName =  todo.getTitle();
             try {
-                if (toDoService.getByUserTitle(user, todo.getTitle()).getTasks().contains(withSuchName));
-            } catch (Exception e) {
-                throw new UserNotFoundException("There is no user : " + user) ;
-            }
-            tasks.add(withSuchName);
+                ToDo usersToDo = toDoService.getByUserTitle(user, toDoName);
+                if ( usersToDo.getTasks().contains(withSuchName)  ) tasks.add(withSuchName);
+            } catch (ToDoValidationException e) {}
         }
-        if (tasks.isEmpty()) throw new TaskNotFoundException("No user has task with name" + name);
+        if (tasks.isEmpty()) throw new UserNotFoundException("No user has task with name" + name);
         if (tasks.size() > 1) throw new DublicateTaskException("More than one user has task with name " + name);
         return withSuchName;
     }

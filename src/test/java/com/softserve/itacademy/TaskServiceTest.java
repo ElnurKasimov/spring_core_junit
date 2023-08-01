@@ -2,7 +2,7 @@ package com.softserve.itacademy;
 
 import com.softserve.itacademy.exceptions.DublicateTaskException;
 import com.softserve.itacademy.exceptions.TaskNotFoundException;
-import com.softserve.itacademy.exceptions.ToDoNotFoundException;
+import com.softserve.itacademy.exceptions.ToDoValidationException;
 import com.softserve.itacademy.exceptions.UserNotFoundException;
 import com.softserve.itacademy.model.Priority;
 import com.softserve.itacademy.model.Task;
@@ -93,7 +93,7 @@ public class TaskServiceTest {
         //given
         ToDo forTestOfPresenceToDo = new ToDo("test", teamLead);
          // when then
-        assertThrows(ToDoNotFoundException.class,() -> taskService.addTask(makeRefactoring, forTestOfPresenceToDo));
+        assertThrows(ToDoValidationException.class,() -> taskService.addTask(makeRefactoring, forTestOfPresenceToDo));
     }
 
     @Test
@@ -152,6 +152,7 @@ public class TaskServiceTest {
         Task expected = new Task("makeRefactoring", Priority.HIGH);
         assertEquals(expected, actual);
         makeRefactoring.setPriority(Priority.LOW);
+        taskService.updateTask(makeRefactoring);
     }
 
     @Test
@@ -221,7 +222,7 @@ public class TaskServiceTest {
         //given
         ToDo someToDo = new ToDo("someToDo", teamLead, new ArrayList<>() );
         // when then
-        assertThrows(ToDoNotFoundException.class,() -> taskService.getByToDo(someToDo));
+        assertThrows(ToDoValidationException.class,() -> taskService.getByToDo(someToDo));
     }
 
     @Test
@@ -257,7 +258,7 @@ public class TaskServiceTest {
         //given
         ToDo someToDo = new ToDo("someToDo", teamLead, new ArrayList<>() );
         // when then
-        assertThrows(ToDoNotFoundException.class,() -> taskService.getByToDoName(someToDo, "writeCode"));
+        assertThrows(ToDoValidationException.class,() -> taskService.getByToDoName(someToDo, "writeCode"));
     }
 
     @Test
