@@ -24,8 +24,7 @@ import com.softserve.itacademy.model.User;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(JUnitPlatform.class)
 public class TaskServiceTest {
@@ -53,15 +52,15 @@ public class TaskServiceTest {
     }
 
     @BeforeAll
-    public static void initUserAndTodo() {
+    public static void initAllNecessaryModels() {
         teamLead = new User("Ilon", "Mask", "wer@com.ua", "qwerty");
         developer = new User("Petro", "Stepanov", "petro@gmail.com", "asdfg");
         userService.addUser(teamLead);
         userService.addUser(developer);
 
         makeReview = new Task("makeReview", Priority.HIGH);
-        makeRefactoring = new Task("makeRefactor", Priority.LOW);
-        checkCode = new ToDo("CheckTests", teamLead,
+        makeRefactoring = new Task("makeRefactoring", Priority.LOW);
+        checkCode = new ToDo("CheckCode", teamLead,
                 List.of(makeReview, makeRefactoring));
         writeCode = new Task("writeCode", Priority.HIGH);
         writeTests = new Task("writeTests", Priority.HIGH);
@@ -127,16 +126,73 @@ public class TaskServiceTest {
 
     @Test
     @DisplayName("Test that updateTask() work when there is no duplicated tasks")
-
-    public void testThatUpdateTaskDoesntWorkWithDuplicatedTasks() {
+    public void testThatUpdateTaskDoesNotWorkWithDuplicatedTasks() {
         //given
         User tester = new User("Mykola", "Stasiv", "mykola@gmail.com", "kjhvfg");
         userService.addUser(tester);
         Task checkTests = new Task("writeTests", Priority.HIGH);
         ToDo testing = new ToDo("testing",  tester,  List.of(writeTests));
         toDoService.addTodo(testing, tester);
-        taskService.addTask(writeTests, testing);
-// when then
-        assertThrows(DublicateTaskException.class,() -> taskService.updateTask(writeTests));
+        // when then
+        assertThrows(DublicateTaskException.class,() -> taskService.updateTask(makeReview));
+        toDoService.deleteTodo(testing);
+        userService.deleteUser(tester);
     }
+
+    @Test
+    @DisplayName("Test that updateTask() work correctly")
+    public void testThatUpdateTaskWorkCorrectly() {
+        //given
+        makeRefactoring.setPriority(Priority.HIGH);
+        // when
+        Task actual = taskService.updateTask(makeRefactoring);
+        // then
+        Task expected = new Task("makeRefactoring", Priority.HIGH);
+        assertEquals(expected, actual);
+        makeRefactoring.setPriority(Priority.LOW);
+    }
+
+    @Test
+    @DisplayName("Test that parameter deleteTask()  shouldn't be null")
+    public void testThatDeleteTaskArgumentNotContainsNull() {
+        assertThrows(IllegalArgumentException.class,() -> taskService.deleteTask(null));
+    }
+
+    @Test
+    @DisplayName("Test that task in parameter updateTask()  is absent")
+
+    public void testThatDeleteTaskArgumentExistAlready() {
+        //given
+        Task absentTask = new Task("absentTask", Priority.LOW);
+        // when then
+        assertThrows(TaskNotFoundException.class,() -> taskService.deleteTask(absentTask));
+    }
+
+    @Test
+    @DisplayName("Test that updateTask() work when there is no duplicated tasks")
+    public void testThatDeleteTaskDoesNotWorkWithDuplicatedTasks() {
+        //given
+        User tester = new User("Mykola", "Stasiv", "mykola@gmail.com", "kjhvfg");
+        userService.addUser(tester);
+        Task checkTests = new Task("writeTests", Priority.HIGH);
+        ToDo testing = new ToDo("testing",  tester,  List.of(writeTests));
+        toDoService.addTodo(testing, tester);
+        // when then
+        assertThrows(DublicateTaskException.class,() -> taskService.deleteTask(makeReview));
+        toDoService.deleteTodo(testing);
+        userService.deleteUser(tester);
+    }
+
+    @Test
+    @DisplayName("Test that deleteTask() work correctly")
+    public void testThatDeleteTaskWorkCorrectly() {
+        //given
+        // when
+       taskService.deleteTask(makeRefactoring);
+        // then
+        List<Task> expected = List.of(makeReview);
+        assertEquals(expected, checkCode.getTasks());
+        taskService.addTask(makeRefactoring, checkCode);
+    }
+
 }

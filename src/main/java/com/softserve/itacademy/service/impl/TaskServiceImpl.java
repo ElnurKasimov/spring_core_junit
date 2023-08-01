@@ -48,7 +48,7 @@ public class TaskServiceImpl implements TaskService {
         List<Task> duplicatesTask = getDuplicatesTaskFromToDo(toDoService.getAll());
         if (!duplicatesTask.isEmpty())
             throw new DublicateTaskException("There should only be one task. But such tasks are duplicated: \n" + duplicatesTask);
-        List<Task> listToUpdate = containsTask.getTasks();
+        List<Task> listToUpdate = new ArrayList<>(containsTask.getTasks());
         int taskIndex = listToUpdate.indexOf(task);
         listToUpdate.set(taskIndex, task);
         return task;
@@ -63,8 +63,9 @@ public class TaskServiceImpl implements TaskService {
         List<Task> duplicatesTask = getDuplicatesTaskFromToDo(toDoService.getAll());
         if (!duplicatesTask.isEmpty())
             throw new DublicateTaskException("There should only be one task. But such tasks are duplicated: \n" + duplicatesTask);
-        List<Task> listToDelete = containsTask.getTasks();
-        if (!containsTask.getTasks().remove(task)) throw new DeleteTaskException("Unsuccessful deleting");
+        List<Task> listToDelete = new ArrayList<>(containsTask.getTasks());
+        if (! listToDelete.remove(task)) throw new DeleteTaskException("Unsuccessful deleting");
+        containsTask.setTasks(listToDelete);
     }
 
     public List<Task> getDuplicatesTaskFromToDo(List<ToDo> toDos) {
