@@ -33,11 +33,8 @@ public class TaskServiceImpl implements TaskService {
         if (toDoService.getAll().stream().noneMatch(td -> td.equals(todo)))
             throw new ToDoNotFoundException("There is no such toDo: " + todo);
         List<Task> taskListToAdd = new ArrayList<>(todo.getTasks());
-
         if (taskListToAdd.contains(task)) throw new DublicateTaskException(
                 "ToDo " + todo + " contains task " + task + " already.  There should only be one task.");
-        //if(taskListToAdd.add(task)) throw new AddTaskException("Unsuccessful adding");
-        // todo.setTasks(taskListToAdd);
         taskListToAdd.add(task);
         todo.setTasks(taskListToAdd);
         return task;

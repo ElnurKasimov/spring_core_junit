@@ -1,5 +1,6 @@
 package com.softserve.itacademy;
 
+import com.softserve.itacademy.exceptions.DublicateTaskException;
 import com.softserve.itacademy.exceptions.ToDoNotFoundException;
 import com.softserve.itacademy.model.Priority;
 import com.softserve.itacademy.model.Task;
@@ -45,25 +46,7 @@ public class TaskServiceTest {
     private static Task writeCode;
     private static Task writeTests;
 
-   // private static List<ToDo> todos = new ArrayList<>();
-
-//    @Mock
-//    private Task task;
-//
-//    @Mock
-//    private ToDo toDo;
-//
-//    @Mock
-//    private ToDoService toDoService;
-//
-//    @Mock
-//    private User user;
-//
-//    @InjectMocks
-//    private TaskServiceImpl taskServiceImpl;
-
-
-    @BeforeAll
+     @BeforeAll
     public static void setupBeforeClass() throws Exception {
         AnnotationConfigApplicationContext annotationConfigContext = new AnnotationConfigApplicationContext(Config.class);
         userService = annotationConfigContext.getBean(UserService.class);
@@ -85,7 +68,7 @@ public class TaskServiceTest {
                 List.of(makeReview, makeRefactoring));
         writeCode = new Task("writeCode", Priority.HIGH);
         writeTests = new Task("writeTests", Priority.HIGH);
-        createTests = new ToDo("createTests",  manager,
+        createTests = new ToDo("createTests",  developer,
                 List.of(writeCode, writeTests));
         toDoService.addTodo(checkTests,manager);
         toDoService.addTodo(createTests,developer);
@@ -107,6 +90,20 @@ public class TaskServiceTest {
                         Arguments.arguments(null, null)
                 );
     }
+
+    @Test
+    public void testThatToDoNotExistInArgumentsAddTask() {
+        //given
+        ToDo forTestOfPresenceToDo = new ToDo("test",manager);
+         // when then
+        assertThrows(ToDoNotFoundException.class,() -> taskService.addTask(makeRefactoring, forTestOfPresenceToDo));
+    }
+
+    @Test
+    public void testThatThereIsNoDuplicatedTasks() {
+        assertThrows(DublicateTaskException.class,() -> taskService.addTask(writeCode, createTests));
+    }
+
     @Test
     public void testThatAddTaskArgumentsNotNullWorkCorrectly() {
         Task actual = taskService.addTask(new Task("ttt", Priority.HIGH), checkTests);
@@ -115,14 +112,6 @@ public class TaskServiceTest {
 
         Assertions.assertEquals(task, actual);
 
-    }
-
-    @Test
-    public void testThatAddTaskArgumentsTodoIsPresent() {
-        //given
-        ToDo forTestOfPresenceToDo = new ToDo("test",manager);
-         // when then
-        assertThrows(ToDoNotFoundException.class,() -> taskService.addTask(makeRefactoring, forTestOfPresenceToDo));
     }
 
 
