@@ -35,8 +35,9 @@ public class TaskServiceImpl implements TaskService {
         List<Task> taskListToAdd = todo.getTasks();
         if( taskListToAdd.contains(task) ) throw new DublicateTaskException(
                 "ToDo " + todo + " contains task " + task + " already.  There should only be one task.");
-        if(taskListToAdd.add(task)) throw new AddTaskException("Unsuccessful adding");
+        //if(taskListToAdd.add(task)) throw new AddTaskException("Unsuccessful adding");
         // todo.setTasks(taskListToAdd);
+        taskListToAdd.add(task);
         return task;
     }
 

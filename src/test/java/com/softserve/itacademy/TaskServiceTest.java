@@ -1,59 +1,100 @@
 package com.softserve.itacademy;
 
+import com.softserve.itacademy.exceptions.ToDoNotFoundException;
 import com.softserve.itacademy.model.Priority;
 import com.softserve.itacademy.model.Task;
 import com.softserve.itacademy.model.ToDo;
 import com.softserve.itacademy.service.TaskService;
 import com.softserve.itacademy.service.ToDoService;
+import com.softserve.itacademy.service.UserService;
+import com.softserve.itacademy.service.impl.TaskServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import com.softserve.itacademy.model.User;
-import java.time.LocalDateTime;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 @RunWith(JUnitPlatform.class)
 public class TaskServiceTest {
-    private static TaskService taskService;
+    private static UserService userService;
     private static ToDoService toDoService;
+    private static TaskService taskService;
+
     private static User manager;
+    private static User developer;
     private static ToDo checkTests;
+    private static ToDo createTests;
+
     private static Task makeReview;
-    private static Task makeRefactor;
+    private static Task makeRefactoring;
+    private static Task writeCode;
+    private static Task writeTests;
+
+   // private static List<ToDo> todos = new ArrayList<>();
+
+//    @Mock
+//    private Task task;
+//
+//    @Mock
+//    private ToDo toDo;
+//
+//    @Mock
+//    private ToDoService toDoService;
+//
+//    @Mock
+//    private User user;
+//
+//    @InjectMocks
+//    private TaskServiceImpl taskServiceImpl;
 
 
     @BeforeAll
     public static void setupBeforeClass() throws Exception {
         AnnotationConfigApplicationContext annotationConfigContext = new AnnotationConfigApplicationContext(Config.class);
-        taskService = annotationConfigContext.getBean(TaskService.class);
+        userService = annotationConfigContext.getBean(UserService.class);
         toDoService = annotationConfigContext.getBean(ToDoService.class);
+        taskService = annotationConfigContext.getBean(TaskService.class);
         annotationConfigContext.close();
     }
 
     @BeforeAll
     public static void initUserAndTodo() {
         manager = new User("Ilon", "Mask", "wer@com.ua", "qwerty");
+        developer = new User("Petro", "Stepanov", "petro@gmail.com", "asdfg");
+        userService.addUser(manager);
+        userService.addUser(developer);
+
         makeReview = new Task("makeReview", Priority.HIGH);
-        makeRefactor = new Task("makeRefactor", Priority.LOW);
-        checkTests = new ToDo("CheckTests", LocalDateTime.now(), manager,
-                List.of(makeReview,makeRefactor));
+        makeRefactoring = new Task("makeRefactor", Priority.LOW);
+        checkTests = new ToDo("CheckTests",  manager,
+                List.of(makeReview, makeRefactoring));
+        writeCode = new Task("writeCode", Priority.HIGH);
+        writeTests = new Task("writeTests", Priority.HIGH);
+        createTests = new ToDo("createTests",  manager,
+                List.of(writeCode, writeTests));
+        toDoService.addTodo(checkTests,manager);
+        toDoService.addTodo(createTests,developer);
     }
 
     @ParameterizedTest (name = "#{index} - Test with task = {0} and todo = {1}")
     @MethodSource("predefinedAddTaskArgumentsForCheckingNull")
     public void testThatAddTaskArgumentsNotContainsNull(Task task, ToDo todo) {
         //given
-
         // when then
         assertThrows(IllegalArgumentException.class,() -> taskService.addTask(task, todo));
     }
@@ -65,6 +106,23 @@ public class TaskServiceTest {
                         Arguments.arguments(makeReview, null),
                         Arguments.arguments(null, null)
                 );
+    }
+    @Test
+    public void testThatAddTaskArgumentsNotNullWorkCorrectly() {
+        try {
+            taskService.addTask(new Task("ttt", Priority.HIGH), checkTests);
+        } catch (IllegalArgumentException e) {
+
+            throw new AssertionError("Expected no exception, but got: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testThatAddTaskArgumentsTodoIsPresent() {
+        //given
+        ToDo forTestOfPresenceToDo = new ToDo("test",manager);
+         // when then
+        assertThrows(ToDoNotFoundException.class,() -> taskService.addTask(makeRefactoring, forTestOfPresenceToDo));
     }
 
 
