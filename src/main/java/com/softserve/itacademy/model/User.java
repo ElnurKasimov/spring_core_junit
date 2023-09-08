@@ -7,15 +7,10 @@ import java.util.List;
 import java.util.Objects;
 
 public class User {
-
     private String firstName;
-
     private String lastName;
-
     private String email;
-
     private String password;
-
     private List<ToDo> myTodos;
     public User(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
